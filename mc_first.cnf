@@ -1,0 +1,7 @@
+c This file describes a DIMACS CNF in MC 2020 format with 6 variables and 4 clauses 
+p cnf 6 4
+-1 -2 0
+2 3 -2 0
+c this is a comment and will be ignored
+4 5 0
+4 6 0
