@@ -97,7 +97,6 @@ double parseDouble(int mode, string x, int lineNumber = -1) {
     checkConstraint(mode, x.length() > 0, lineNumber, "Expected double, got empty string");
 
     int sign = 1;
-    int ret = 0;
 
     if (x[0] == '-') {
         sign = -1;
@@ -108,10 +107,9 @@ double parseDouble(int mode, string x, int lineNumber = -1) {
 
     for (char ch : x) {
         checkConstraint(mode, ('0' <= ch && ch <= '9') || ch == '.', lineNumber, "Expected double, got non-double string");
-        ret = 10 * ret + (ch - '0');
     }
 
-    return ret * sign;
+    return stod(x) * sign;
 }
 
 ////////////// END OF HELPER //////////////////
@@ -311,18 +309,18 @@ int main(int argc, char **argv)
     if (argc >= 4) {
         int jsNumModels = judgeSolution.getNumOfModels();
         int usNumModels = userSolution.getNumOfModels();
-        double usWeightedModel = judgeSolution.getWeightedModel();
+        double usWeightedModel = userSolution.getWeightedModel();
         double jsWeightedModel = judgeSolution.getWeightedModel();
 
         if (mode == "cnf") {
-            valid &= ((jsNumModels - 0.1 * jsNumModels) <= usNumModels &&
-                      usNumModels <= (jsNumModels + jsNumModels * 0.1));
+            valid &= ((jsNumModels - 0.01 * jsNumModels) <= usNumModels &&
+                      usNumModels <= (jsNumModels + jsNumModels * 0.01));
         } else if (mode == "wcnf") {
-            valid &= ((jsWeightedModel - jsWeightedModel * 0.15) <= usWeightedModel &&
-                      usWeightedModel <= (jsWeightedModel + jsWeightedModel * 0.15));
+            valid &= ((jsWeightedModel - jsWeightedModel * 0.01) <= usWeightedModel &&
+                      usWeightedModel <= (jsWeightedModel + jsWeightedModel * 0.01));
         } else if (mode == "pcnf") {
-            valid &= ((jsNumModels - 0.1 * jsNumModels) <= usNumModels &&
-                      usNumModels <= (jsNumModels + jsNumModels * 0.1));
+            valid &= ((jsNumModels - 0.01 * jsNumModels) <= usNumModels &&
+                      usNumModels <= (jsNumModels + jsNumModels * 0.01));
         } else {
             valid = false;
         }
@@ -330,12 +328,13 @@ int main(int argc, char **argv)
         readdata();
     }
     DO_CHECK_CONSTRAINT = true;
-    checkSolutionConstraint(valid, "Wrong answer!");
-
-
+    // checkSolutionConstraint(valid, "Wrong answer!");
     //giveVerdict(userTime, "SUCCESS");
 
-    printf("%d|SUCCESS\n", 1);
+    if (valid)
+        printf("%d|SUCCESS\n", 1);
+    else
+        printf("%d|SUCCESS\n", 0);
 
     return 0;
 }
