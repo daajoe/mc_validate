@@ -1,2 +1,2 @@
-c This formula has only one model
-s mc 1
+c This formula has only 1 model
+s mc 1 
