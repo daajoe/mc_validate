@@ -1,7 +1,7 @@
 c This file describes a weighted CNF in 2020 format with 3 variables and 4 clauses
 p wcnf 3 4
-w 2 0.6 0
-w 3 0.2 0
+w 2 1.6 0
+w 3 2.2 0
 1 2 0
 -1 2 0
 1 0
