@@ -10,13 +10,15 @@ using namespace std;
 
 //////////// HELPER //////////////////
 
-const int TIMEOUT_TIME = 1800;
+const int TIMEOUT_TIME = 120;
 const int DELAY_TIME = 0;
 
 const int INSTANCE_READ_MODE = 1;
 const int SOLUTION_READ_MODE = 2;
 
 bool DO_CHECK_CONSTRAINT;
+
+bool TIMEOUT_LIMIT_NOT_EXCEEDED = true;
 
 void checkInputConstraint(bool validConstraint, int lineNumber, string failMsg) {
     if (!validConstraint) {
@@ -35,7 +37,7 @@ void checkSolutionConstraint(bool validConstraint, string failMsg) {
 #ifdef VERBOSE
         giveVerdict(-TIMEOUT_TIME * 10, failMsg);
 #else
-        giveVerdict(-TIMEOUT_TIME * 10, " - Wrong Answer");
+        giveVerdict(-TIMEOUT_TIME * 10, " - Wrong Answer" + failMsg);
 #endif
     }
 }
@@ -128,8 +130,8 @@ public:
     void readFromStream(ifstream &is, bool doCheckConstraint, string mode) {
         DO_CHECK_CONSTRAINT = doCheckConstraint;
 
-        numOfModels = -1;
-        weightedModel = -1.0;
+        numOfModels = -258;
+        weightedModel = -258.0;
         string modeSol = modeSolution(mode);
 
         string line;
@@ -141,8 +143,8 @@ public:
             }
 
             if (tokens[0] == "s") {
-                checkSolutionConstraint(numOfModels == -1, "Multiple header in solution");
-                checkSolutionConstraint(weightedModel == -1.0, "Multiple header in solution");
+                checkSolutionConstraint(numOfModels == -258, "Multiple header in solution");
+                checkSolutionConstraint(weightedModel == -258.0, "Multiple header in solution");
                 checkSolutionConstraint(tokens.size() == 3, "Header must be 3 tokens <s " + modeSol + " numOfModels>");
                 checkSolutionConstraint(tokens[1] == modeSol, "Second header token must be " + modeSol);
 
@@ -155,10 +157,10 @@ public:
             }
         }
 
-        if (numOfModels != -1) {
-            checkSolutionConstraint(numOfModels != -1, "No header found");
-        } else if (weightedModel != -1.0) {
-            checkSolutionConstraint(weightedModel != -1.0, "No header found");
+        if (numOfModels != -258) {
+            checkSolutionConstraint(numOfModels != -258, "No header found");
+        } else if (weightedModel != -258.0) {
+            checkSolutionConstraint(weightedModel != -258.0, "No header found");
         } else {
             checkSolutionConstraint(false, "No header found");
         }
@@ -270,8 +272,7 @@ void readdata()
     exit(0);
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     if (argc < 3) {
         printf("Usage: %s instance_input solution_output [instance_output]\n", argv[0]);
         return 0;
@@ -282,8 +283,9 @@ int main(int argc, char **argv)
         // since OPTIL give use 100 * time in seconds..
         // userTime /= 100.0;
 
-        if (userTime > TIMEOUT_TIME + DELAY_TIME) {
-            giveVerdict(-TIMEOUT_TIME * 2, "Time Limit Exceeded");
+        if (userTime * 60 > TIMEOUT_TIME) {
+            TIMEOUT_LIMIT_NOT_EXCEEDED = false;
+            //giveVerdict(-TIMEOUT_TIME, "Time Limit Exceeded");
         }
     }
 
@@ -312,17 +314,24 @@ int main(int argc, char **argv)
         double usWeightedModel = userSolution.getWeightedModel();
         double jsWeightedModel = judgeSolution.getWeightedModel();
 
-        if (mode == "cnf") {
-            valid &= ((jsNumModels - 0.01 * jsNumModels) <= usNumModels &&
-                      usNumModels <= (jsNumModels + jsNumModels * 0.01));
-        } else if (mode == "wcnf") {
-            valid &= ((jsWeightedModel - jsWeightedModel * 0.01) <= usWeightedModel &&
-                      usWeightedModel <= (jsWeightedModel + jsWeightedModel * 0.01));
-        } else if (mode == "pcnf") {
-            valid &= ((jsNumModels - 0.01 * jsNumModels) <= usNumModels &&
-                      usNumModels <= (jsNumModels + jsNumModels * 0.01));
-        } else {
+        if (!TIMEOUT_LIMIT_NOT_EXCEEDED && jsNumModels<0 && jsWeightedModel < 0.0 ){
             valid = false;
+        } else {
+            if (mode == "cnf") {
+                valid &= ((jsNumModels - 0.01 * jsNumModels) <= usNumModels &&
+                           usNumModels <= (jsNumModels + jsNumModels * 0.01)) ||
+                          (jsNumModels < 0 && usNumModels > 0);
+            } else if (mode == "wcnf") {
+                valid &= ((jsWeightedModel - jsWeightedModel * 0.01) <= usWeightedModel &&
+                           usWeightedModel <= (jsWeightedModel + jsWeightedModel * 0.01)) ||
+                          (jsWeightedModel < 0 && usWeightedModel > 0);
+            } else if (mode == "pcnf") {
+                valid &= ((jsNumModels - 0.01 * jsNumModels) <= usNumModels &&
+                           usNumModels <= (jsNumModels + jsNumModels * 0.01)) ||
+                          (jsNumModels < 0 && usNumModels > 0);
+            } else {
+                valid = false;
+            }
         }
     } else {
         readdata();
@@ -335,6 +344,5 @@ int main(int argc, char **argv)
         printf("%d|SUCCESS\n", 1);
     else
         printf("%d|SUCCESS\n", 0);
-
     return 0;
 }

@@ -1,9 +1,10 @@
 c This file describes a weighted CNF in MC 2020 format with 4 variables and 4 clauses
 p wcnf 4 4
-w 1 1.33 0
-w 2 1.77 0
-w 4 1.12 0
+w 1 0.33 0
+w 2 0.77 0
+w 4 1.0 0
 1 2 4 0
 -1 2 0
 1 -4 0
 2 3 0
+
