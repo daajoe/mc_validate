@@ -16,15 +16,16 @@ using namespace std;
 
 //////////// HELPER //////////////////
 
-const int TIMEOUT_TIME = 7200;
+//in milliseconds
+
+const int TIMEOUT_TIME = 1800;
+const int MIN_SOLUTION_TIME  = 120;
 const int DELAY_TIME = 0;
 
 const int INSTANCE_READ_MODE = 1;
 const int SOLUTION_READ_MODE = 2;
 
 bool DO_CHECK_CONSTRAINT;
-
-bool TIMEOUT_LIMIT_NOT_EXCEEDED = true;
 
 void checkInputConstraint(bool validConstraint, int lineNumber, string failMsg) {
     if (!validConstraint) {
@@ -41,9 +42,9 @@ void giveVerdict(double score, string msg) {
 void checkSolutionConstraint(bool validConstraint, string failMsg) {
     if (DO_CHECK_CONSTRAINT && !validConstraint) {
 #ifdef VERBOSE
-        giveVerdict(-TIMEOUT_TIME * 10, failMsg);
+        giveVerdict(-TIMEOUT_TIME, failMsg);
 #else
-        giveVerdict(-TIMEOUT_TIME * 10, " - Wrong Answer" + failMsg);
+        giveVerdict(-TIMEOUT_TIME, " - Wrong Answer" + failMsg);
 #endif
     }
 }
@@ -310,12 +311,11 @@ int main(int argc, char **argv) {
 
     if (argc >= 5) {
         sscanf(argv[4], "%lf", &userTime);
-        // since OPTIL give use 100 * time in seconds..
-        // userTime /= 100.0;
+        // since OPTIL give use time in milli seconds..
+        userTime /= 1000.0;
 
-        if (userTime * 60 > TIMEOUT_TIME) {
-            TIMEOUT_LIMIT_NOT_EXCEEDED = false;
-            //giveVerdict(-TIMEOUT_TIME, "Time Limit Exceeded");
+        if (userTime > TIMEOUT_TIME) {
+            giveVerdict(-TIMEOUT_TIME, "Time Limit Exceeded");
         }
     }
 
@@ -357,9 +357,9 @@ int main(int argc, char **argv) {
         mpf_set_str(usWeightedModel, userSolution.getWeightedModel().c_str(), 10);
         mpf_set_str(jsWeightedModel, judgeSolution.getWeightedModel().c_str(), 10);
 
-        mpf_set_str(percentageDeviation, "0.01", 10);
+        mpf_set_str(percentageDeviation, "0.1", 10);
 
-        if (!TIMEOUT_LIMIT_NOT_EXCEEDED && mpf_sgn(jsNumModels)<0 && mpf_sgn(jsWeightedModel) < 0 ){
+        if ((userTime <= MIN_SOLUTION_TIME) && (mpf_sgn(jsNumModels) == -1 && mpf_sgn(jsWeightedModel) == -1) ){
             valid = false;
         } else {
             if (mode == "cnf") {
